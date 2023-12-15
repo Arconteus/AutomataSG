@@ -10,6 +10,8 @@ public class ColorUpdate : MonoBehaviour
     public Color hoverColor;
     public Color DrahColor;
     public Color selectColor;
+    public Color currentStateColor;
+    public Color previousStateColor;
     [Header("Sprites References")]
     public SpriteRenderer sprite;
     public SpriteRenderer finalSprite;
