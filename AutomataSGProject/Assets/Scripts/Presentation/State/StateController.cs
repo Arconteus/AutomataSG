@@ -20,7 +20,7 @@ public class StateController : MonoBehaviour
     //============================================
     // Funciones de Unity
     //============================================
-    public void Start()
+    public void Awake()
     {
         DFA.States.Add(StateCount.ToString());
         this.StateReference = StateCount.ToString();
