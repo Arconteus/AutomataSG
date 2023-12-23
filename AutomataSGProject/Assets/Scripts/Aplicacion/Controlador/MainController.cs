@@ -28,7 +28,7 @@ public class SelectIndicador : MonoBehaviour
     public void Start()
     {
         GameObject FirstState = Instantiate(prefabState);
-        FirstState.name = "q0";
+        FirstState.name = "q1";
         FirstState.transform.position = new Vector3(0, 0, 0);
         DFA.SetInitialState(FirstState.GetComponent<StateController>().StateReference);
     }
@@ -94,12 +94,15 @@ public class SelectIndicador : MonoBehaviour
             {
                 this.TargetState = item.collider.gameObject;
                 this.TempStateSlot.GetComponent<TransitionController>().Target = this.TargetState.transform;
+                this.TempStateSlot.GetComponent<TransitionController>().Rename();
+                this.TempStateSlot = null;
             }
             else
             {
                 this.OriginState = null;
                 this.TargetState = null;
                 Destroy(this.TempStateSlot);
+                this.TempStateSlot = null;
             }
         }
         else
