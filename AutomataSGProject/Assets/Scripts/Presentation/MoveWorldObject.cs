@@ -11,14 +11,11 @@ public class MoveWorldObject : MonoBehaviour
     }
     private void OnMouseDown()
     {
-        this.differences=
-            (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition)
-            -(Vector2)transform.position;
+        this.differences = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
     }
     private void OnMouseDrag()
     {
-        this.transform.position=
-            (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition)
-            -this.differences;
+        if(this.enabled)
+        this.transform.position=  (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - this.differences;
     }
 }

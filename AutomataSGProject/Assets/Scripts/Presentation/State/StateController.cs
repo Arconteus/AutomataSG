@@ -8,7 +8,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 public class StateController : MonoBehaviour
 {
-    public static int StateCount = 1;
+    public static int StateCount { get; private set; } = 0;
     [Header("GameObject reference")]
     public GameObject FinalSkin;
     public GameObject InputSkin;
@@ -49,7 +49,7 @@ public class StateController : MonoBehaviour
         // Nombre
         this.Etiqueta.text = this.gameObject.name;
         // Skin del nodo
-        if (DFA.CheckFinalState(this.StateReference))
+        if (DFA.FinalSates.List.Contains(this.StateReference))
         {
             this.FinalSkin.SetActive(true);
         }
@@ -57,7 +57,7 @@ public class StateController : MonoBehaviour
         {
             this.FinalSkin.SetActive(false);
         }
-        if (DFA.GetCurrentState() == this.StateReference)
+        if (DFA.Simulation.CurrentState == this.StateReference)
         {
             this.InputSkin.SetActive(true);
         }
@@ -68,13 +68,13 @@ public class StateController : MonoBehaviour
     }
     public void SwapFinalState()
     {
-        if(!DFA.CheckFinalState(this.StateReference) )
+        if(!DFA.FinalSates.List.Contains(this.StateReference) )
         {
-            DFA.AddFinalState(this.StateReference);
+            DFA.FinalSates.Add(this.StateReference);
         }
         else
         {
-            DFA.RemoveFinalState(this.StateReference);
+            DFA.FinalSates.Remove(this.StateReference);
         }
     }
 }

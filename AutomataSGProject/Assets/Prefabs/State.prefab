@@ -268,10 +268,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultColor: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 1}
-  hoverColor: {r: 0.6462264, g: 0.871355, b: 1, a: 1}
-  DrahColor: {r: 0.30980393, g: 0.7490196, b: 1, a: 1}
-  selectColor: {r: 0.64705884, g: 0.8705883, b: 1, a: 1}
-  currentStateColor: {r: 0.25943398, g: 1, b: 0.25943398, a: 1}
+  hoverColor: {r: 0.30980393, g: 0.7490196, b: 1, a: 1}
+  DrahColor: {r: 0, g: 0.6392157, b: 1, a: 1}
+  selectColor: {r: 0.30980393, g: 0.7490196, b: 1, a: 1}
+  currentStateColor: {r: 0.20784315, g: 0.8980393, b: 0.30980393, a: 1}
   previousStateColor: {r: 0.3254717, g: 1, b: 0.8795088, a: 1}
   sprite: {fileID: 308141646192618792}
   finalSprite: {fileID: 1971681876770556829}

@@ -1,353 +1,385 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem.XR.Haptics;
+using static UnityEngine.GraphicsBuffer;
 
 public static class DFA
 {
-    //========================================================================
-    // Variables Quintupla
-    //========================================================================
-    // <==[Public]==>
-    public static HashSet<char> Alphabet = new HashSet<char>();
-    public static HashSet<string> States = new HashSet<string>();
-    // <==[Private]==>
-    private static Dictionary<(string state, char symbol), string> Transitions
-        = new Dictionary<(string state, char symbol), string>();
-    private static HashSet<string> FinalStates = new HashSet<string>();
-    private static string InitialState = string.Empty;
-    //========================================================================
-    // Variables de control
-    //========================================================================
-    private static string CurrentState = string.Empty;
-    private static string PreviousState = "-";
-    private static string StringToProcess = string.Empty;
-    private static string StringOnProcess = "-";
-    private static bool Finished = false;
-    //========================================================================
-    // Funciones de mantenimiento
-    //========================================================================
-    public static void Clear()
+    public static class Alphabet
     {
-        // quintupla clear logic
-        FinalStates.Clear();
-        Transitions.Clear();
-        Alphabet.Clear();
-        States.Clear();
-        InitialState = string.Empty;
-        // control clear logic
-        CurrentState = string.Empty;
-        PreviousState = "-";
-        StringToProcess = string.Empty;
-        StringOnProcess = "-";
-        Finished = false;
-        Debug.Log("The deterministic finite automata have been eliminated.");
-    }
-    public static void Restart()
-    {
-        CurrentState = InitialState;
-        PreviousState = "-";
-        StringToProcess = string.Empty;
-        StringOnProcess = "-";
-        Finished = false;
-    }
-    //========================================================================
-    // Funciones de configuracion
-    //========================================================================
-    public static bool AddTransition(string State, char Symbol, string Target)
-    {
-        bool output = true;
-        if (Alphabet.Count <= 0)
+        public static HashSet<char> List { get; private set; } = new HashSet<char>();
+        public static bool Add(char input)
         {
-            Debug.LogError("You do not be able to add a transition without set an alphabet before.");
-            output = false;
-        }
-        if (States.Count <= 0)
-        {
-            Debug.LogError("You do not be able to add a transition without set some states before.");
-            output = false;
-        }
-        if (!States.Contains(State))
-        {
-            Debug.LogError("The state " + State + " was not declareted in the states list.");
-            output = false;
-        }
-        if (!States.Contains(Target))
-        {
-            Debug.LogError("The state " + Target + " was not declareted in the states list.");
-            output = false;
-        }
-        if (!Alphabet.Contains(Symbol))
-        {
-            Debug.LogError("The symbol " + Symbol + " was not declareted in the alphabet.");
-            output = false;
-        }
-        if (Transitions.ContainsKey((State, Symbol)))
-        {
-            Debug.LogError("The transition (" + State + "," + Symbol + ") it already exist, you do not be able to add the same transition twice.");
-            output = false;
-        }
-        if (output)
-        {
-            Transitions.Add((State, Symbol), Target);
-            Debug.Log("The transition (" + State + "," + Symbol + "):" + Target + " has been added.");
-        }
-        return output;
-    }
-    public static bool AddFinalState(string StateInput)
-    {
-        bool output = true;
-        if (States.Count <= 0)
-        {
-            Debug.LogError("You do not be able to add a final state without set some states before.");
-            output = false;
-        }
-        if (!States.Contains(StateInput))
-        {
-            Debug.LogError("The state " + StateInput + " was not declaret in the state list before.");
-            output = false;
-        }
-        if (FinalStates.Contains(StateInput))
-        {
-            Debug.LogError("The state " + StateInput + " is already exist on the final state list, you do not be able to add the same state twice.");
-            output = false;
-        }
-        if (output)
-        {
-            FinalStates.Add(StateInput);
-        }
-        return output;
-    }
-    public static bool SetInitialState(string StateInput)
-    {
-        bool output = true;
-        if (States.Count <= 0)
-        {
-            Debug.LogError("You do not be able to set a initial state without add some states before.");
-            output = false;
-        }
-        if (!States.Contains(StateInput))
-        {
-            Debug.LogError("The state " + StateInput + " was not declarated in the states list.");
-            output = false;
-        }
-        if (output)
-        {
-            InitialState = StateInput;
-            CurrentState = InitialState;
-            Debug.Log("The state " + StateInput + " has been setted to initial state");
-        }
-        return output;
-    }
-    public static bool SetStringToProcess(string ProcessInput)
-    {
-        bool output = true;
-        foreach (char symbol in ProcessInput)
-        {
-            if (!Alphabet.Contains(symbol))
+            bool output = true;
+            char[] exceptions = {'{','}',',','e',' ','-'};
+            foreach (char iteration in exceptions)
             {
-                Debug.LogError("The string " + ProcessInput + " contain invalid symbols");
-                output = false;
-                break;
+                if(input == iteration)
+                {
+                    output = false;
+                }
             }
-        }
-        if (output)
-        {
-            string toSet = "-";
-            Debug.Log("The string " + ProcessInput + " has been setted to be process");
-            StringToProcess = ProcessInput;
-            for (int i = ProcessInput.Length - 1; i >= 0; i--)
+            if(output )
             {
-                toSet += ProcessInput[i];
-            }
-            StringOnProcess = toSet;
-        }
-        return output;
-    }
-
-    //========================================================================
-    // Funciones de eliminacion
-    //========================================================================
-    public static bool RemoveTransition(string state, char symbol)
-    {
-        bool output = true;
-        if (!States.Contains(state))
-        {
-            Debug.LogError("The state " + state + " is not valid.");
-            output = false;
-        }
-        if (!Alphabet.Contains(symbol))
-        {
-            Debug.LogError("The symbol " + symbol + " is not a valid symbol.");
-            output = false;
-        }
-        if (!Transitions.ContainsKey((state, symbol)))
-        {
-            Debug.LogError("The transition (" + state + "," + symbol + ") is not a valid transition");
-            output = false;
-        }
-        if (output)
-        {
-            Transitions.Remove((state, symbol));
-            Debug.Log("The transition (" + state + "," + symbol + " has been removed.");
-        }
-        return output;
-    }
-    public static bool RemoveFinalState(string state)
-    {
-        bool output = true;
-
-        if (!States.Contains(state))
-        {
-            Debug.LogError("The state " + state + " is not valid.");
-            output = false;
-        }
-        if (!FinalStates.Contains(state))
-        {
-            Debug.LogError("The state " + state + " is not a final state.");
-            output = false;
-        }
-        if (output)
-        {
-            FinalStates.Remove(state);
-            Debug.Log("The state " + state + " has been remove from final states list.");
-        }
-        return output;
-    }
-    public static bool FullRemoveState(string state)
-    {
-        bool output = true;
-        if (!States.Contains(state))
-        {
-            Debug.LogError("The state " + state + " is not valid.");
-            output = false;
-        }
-        foreach (char symbol in Alphabet)
-        {
-            Debug.Log("Trying to remove (" + state + "," + symbol + ").");
-            RemoveTransition(state, symbol);
-        }
-        return output;
-    }
-    //========================================================================
-    // Funciones de solicitud de informacion
-    //========================================================================
-    public static List<(string, char, string)> GetTransitionsList()
-    {
-        List<(string, char, string)> output = new List<(string, char, string)>();
-        foreach (var item in Transitions)
-        {
-            output.Add(new(item.Key.state, item.Key.symbol, item.Value));
-        }
-        return output;
-    }
-    public static List<string> GetFinalStatesList()
-    {
-        List<string> output = FinalStates.ToList<string>();
-        return output;
-    }
-    public static string GetInitialState()
-    {
-        return InitialState;
-    }
-    public static string GetCurrentState()
-    {
-        return CurrentState;
-    }
-    public static string GetPreviousState()
-    {
-        return PreviousState;
-    }
-    public static string GetStringToProcess()
-    {
-        return StringToProcess;
-    }
-    public static string GetStringOnProcess()
-    {
-        return StringOnProcess;
-    }
-    public static char GetLastSymbol()
-    {
-        return StringOnProcess[StringOnProcess.Length - 1];
-    }
-    public static bool IsFinished()
-    {
-        return Finished;
-    }
-    public static bool IsFinalState()
-    {
-        return FinalStates.Contains(CurrentState);
-    }
-    public static bool CheckFinalState(string input)
-    {
-        return FinalStates.Contains(input);
-    }
-    //========================================================================
-    // Funciones de procesamiento
-    //========================================================================
-    public static bool NextStep()
-    {
-        bool output = true;
-        if (GetLastSymbol() == '-')
-        {
-            if (IsFinalState())
-            {
-                Debug.Log("The string " + StringToProcess + " is a valid input on this automata.");
-                output = false;
-            }
-            else
-            {
-                Debug.LogError("The string " + StringToProcess + " is not a valid input on this automata.");
-                output = false;
+                List.Add(input);
+                Debug.Log("The symbol " + input + " has been added to the current alphabet.");
             }
             return output;
         }
-        if (Alphabet.Count <= 0)
+        public static bool Remove(char input)
         {
-            Debug.LogError("You do not be able to evaluate a string without set the alphabet before.");
-            output = false;
+            bool output = true;
+            if(!List.Contains(input))
+            {
+                output = false;
+                Debug.LogError("The symbol " + input + " is not declare in the current alphabet.");
+            }
+            if(output)
+            {
+                foreach(string iteration in States.List)
+                {
+                    Transitions.Remove(new Transition() {
+                        State = iteration, Symbol = input 
+                    });
+                }
+                List.Remove(input);
+                Debug.Log("The symbol " + input + " has been remove from the current alphabet.");
+            }
+            return output;
         }
-        if (States.Count <= 0)
+        public static void Clear()
         {
-            Debug.LogError("You do not be able to evaluate a string without add some states before.");
-            output = false;
+            List.Clear();
+            Debug.Log("The alphabet has been cleared.");
         }
-        if (FinalStates.Count <= 0)
-        {
-            Debug.LogError("You do not be able to evaluate a string without add some final states before.");
-            output = false;
-        }
-        if (Transitions.Count <= 0)
-        {
-            Debug.LogError("You do not be able to evaluate a string without add some transitions before.");
-            output = false;
-        }
-        if (InitialState == string.Empty)
-        {
-            Debug.LogError("You do not be able to evaluate a string wothout set the initial state before.");
-            output = false;
-        }
-        if (!Transitions.ContainsKey((CurrentState, GetLastSymbol())))
-        {
-            Debug.LogError("The transition (" + CurrentState + "," + GetLastSymbol() + ") is not a valid transition.");
-            output = false;
-        }
-        if (Finished)
-        {
-            PreviousState = CurrentState;
-            CurrentState = Transitions[(CurrentState, GetLastSymbol())];
-            Debug.Log("Transition (" + PreviousState + "," + GetLastSymbol() + "):" + CurrentState);
-            Debug.Log("String on Process: " + StringOnProcess);
-            StringOnProcess = StringOnProcess.Remove(StringOnProcess.Length - 1);
-        }
-        return Finished = output;
     }
-    public static bool FullProcess()
+    public static class States
     {
-        bool output = true;
-        while (NextStep())
+        public static HashSet<string> List { get; private set; } = new HashSet<string>();
+        public static bool Add(string input)
         {
-            output = IsFinalState();
+            bool output = true;
+            if (List.Contains(input.ToLower()))
+            {
+                output = false;
+                Debug.LogError("The state " + List + " is already part of the current States list.");
+            }
+            if (output)
+            {
+                List.Add(input.ToLower());
+                Debug.Log("The state "+input+" has been added to the current States list.");
+            }
+            return output;
         }
-        return output;
+        public static bool Remove(string input)
+        {
+            bool output = true;
+            if (!List.Contains(input.ToLower()))
+            {
+                output = false;
+                Debug.LogError("The state "+input+" is not part of the current States list.");
+            }
+            if (output)
+            {
+                foreach(char iteration in Alphabet.List)
+                {
+                    Transitions.Remove(new Transition() { State=input, Symbol=iteration});
+                }
+                List.Remove(input);
+                Debug.Log("The state " + input + " has beeen removed from the current States list.");
+            }
+            return output;
+        }
+    }
+    public static class Transitions
+    {
+        public static Dictionary<(string State, char Symbol), string> List { get; private set; }
+            = new Dictionary<(string state, char symbol), string>();
+        public static bool Contain(Transition input)
+        {
+            bool output = true;
+            if (!List.ContainsKey((input.State, input.Symbol)))
+            {
+                output = false;
+                //Debug.LogError("The transition (" + input.State + "," + input.Symbol + ") is not a valid transition ");
+            }
+            return output;
+        }
+        public static bool Add(Transition input)
+        {
+            bool output=true;
+            if (Alphabet.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to add a transition without set an alphabet before.");
+                output = false;
+            }
+            if (States.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to add a transition without set some states before.");
+                output = false;
+            }
+            if (!States.List.Contains(input.State))
+            {
+                Debug.LogError("The state " + input.State + " was not declareted in the states list.");
+                output = false;
+            }
+            if (!States.List.Contains(input.FinalState))
+            {
+                Debug.LogError("The state " + input.FinalState + " was not declareted in the states list.");
+                output = false;
+            }
+            if (!Alphabet.List.Contains(input.Symbol))
+            {
+                Debug.LogError("The symbol " + input.Symbol + " was not declareted in the alphabet.");
+                output = false;
+            }
+            if (List.ContainsKey((input.State, input.Symbol)))
+            {
+                Debug.LogError("The transition (" + input.State + "," + input.Symbol + ") it already exist, you do not be able to add the same transition twice.");
+                output = false;
+            }
+            if (output)
+            {
+                List.Add((input.State, input.Symbol), input.FinalState);
+                Debug.Log("The transition (" + input.State + "," + input.Symbol + "):" + input.FinalState + " has been added.");
+            }
+            return output;
+        }
+        public static bool Remove(Transition input)
+        {
+            bool output = true;
+            if (!States.List.Contains(input.State))
+            {
+                Debug.LogError("The state " + input.State + " is not valid.");
+                output = false;
+            }
+            if (!Alphabet.List.Contains(input.Symbol))
+            {
+                Debug.LogError("The symbol " + input.Symbol + " is not a valid symbol.");
+                output = false;
+            }
+            output = Contain(input);
+            if (output)
+            {
+                List.Remove((input.State, input.Symbol));
+                Debug.Log("The transition (" + input.State + "," + input.Symbol + " has been removed.");
+            }
+            return output;
+        }
+        public static void Clear()
+        {
+            List.Clear();
+            Debug.Log("The transitions list has been cleared.");
+        }
+        public static List<Transition> Get() 
+        {
+            List<Transition> output = new List<Transition>();
+            foreach(var iteration in List)
+            {
+                output.Add(new Transition()
+                {
+                    State = iteration.Key.State, 
+                    Symbol = iteration.Key.Symbol,
+                    FinalState = iteration.Value
+                });
+            }
+            return output;
+        }
+    }
+    public static class FinalSates
+    {
+        public static HashSet<string> List { get; private set; } = new HashSet<string>();
+        public static bool Add(string input)
+        {
+            bool output = true;
+            if (States.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to add a final state without set some states before.");
+                output = false;
+            }
+            if (!States.List.Contains(input))
+            {
+                Debug.LogError("The state " + input + " was not declaret in the current state list.");
+                output = false;
+            }
+            if (!States.List.Contains(input))
+            {
+                output = false;
+                Debug.LogError("The final state "+input+" is not contain in the current final states list.");
+            }
+            if (output)
+            {
+                List.Add(input);
+                Debug.Log("The state " + input + " has been added to the final states list.");
+            }
+            return output;
+        }
+        public static bool Remove(string input)
+        {
+            bool output = true;
+            if (!States.List.Contains(input))
+            {
+                Debug.LogError("The state " + input + " is not valid.");
+                output = false;
+            }
+            if (!List.Contains(input))
+            {
+                Debug.LogError("The state " + input + " is not a final state.");
+                output = false;
+            }
+            if (output)
+            {
+                List.Remove(input);
+                foreach(char iteration in Alphabet.List)
+                {
+                    Transitions.Remove(new Transition()
+                    {
+                        State = input,
+                        Symbol = iteration
+                    });
+                }
+                Debug.Log("The state " + input + " has been remove from final states list.");
+            }
+            return output;
+        }
+    }
+    public static class InitialState
+    {
+        public static string Value { get; private set; } = string.Empty;
+        public static bool Set(string input)
+        {
+            bool output = true;
+            if (States.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to set a initial state without add some states before.");
+                output = false;
+            }
+            if (!States.List.Contains(input))
+            {
+                Debug.LogError("The state " + input + " was not declarated in the current states list.");
+                output = false;
+            }
+            if (output)
+            {
+                Value = input;
+                Simulation.CurrentState = Value;
+                Debug.Log("The state " + input + " has been setted to initial state");
+            }
+            return output;
+        }
+    }
+
+    public static class Simulation
+    {
+        public static string CurrentState { get; internal set; }
+        public static string PreviousState {  get; private set; }
+        public static string StringToProcess { get; private set; }
+        public static string StringOnProcess {  get; private set; }
+        public static bool Finish { get; private set; }
+
+        public static void Restart()
+        {
+            CurrentState = InitialState.Value;
+            PreviousState = "-";
+            StringToProcess = string.Empty;
+            StringOnProcess = "-";
+            Finish = false;
+        }
+        public static bool SetStringToProcess(string ProcessInput)
+        {
+            bool output = true;
+            foreach (char symbol in ProcessInput)
+            {
+                if (!Alphabet.List.Contains(symbol))
+                {
+                    Debug.LogError("The string " + ProcessInput + " contain invalid symbols");
+                    output = false;
+                    break;
+                }
+            }
+            if (output)
+            {
+                string toSet = "-";
+                Debug.Log("The string " + ProcessInput + " has been setted to be process");
+                StringToProcess = ProcessInput;
+                for (int i = ProcessInput.Length - 1; i >= 0; i--)
+                {
+                    toSet += ProcessInput[i];
+                }
+                StringOnProcess = toSet;
+            }
+            return output;
+        }
+        private static char GetLastSymbol()
+        {
+            return StringOnProcess[StringOnProcess.Length - 1];
+        }
+        public static bool NextStep()
+        {
+            bool output = true;
+            if (GetLastSymbol() == '-')
+            {
+                if (FinalSates.List.Contains(CurrentState))
+                {
+                    Debug.Log("The string " + StringToProcess + " is a valid input on this automata.");
+                    output = false;
+                }
+                else
+                {
+                    Debug.LogError("The string " + StringToProcess + " is not a valid input on this automata.");
+                    output = false;
+                }
+                return output;
+            }
+            if (Alphabet.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to evaluate a string without set the alphabet before.");
+                output = false;
+            }
+            if (States.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to evaluate a string without add some states before.");
+                output = false;
+            }
+            if (FinalSates.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to evaluate a string without add some final states before.");
+                output = false;
+            }
+            if (Transitions.List.Count <= 0)
+            {
+                Debug.LogError("You do not be able to evaluate a string without add some transitions before.");
+                output = false;
+            }
+            if (InitialState.Value == string.Empty)
+            {
+                Debug.LogError("You do not be able to evaluate a string wothout set the initial state before.");
+                output = false;
+            }
+            if (!Transitions.Contain( new Transition() { State = CurrentState, Symbol = GetLastSymbol() } ))
+            {
+                Debug.LogError("The transition (" + CurrentState + "," + GetLastSymbol() + ") is not a valid transition.");
+                output = false;
+            }
+            if (Finish)
+            {
+                PreviousState = CurrentState;
+                CurrentState = Transitions.List[(CurrentState, GetLastSymbol())];
+                Debug.Log("Transition (" + PreviousState + "," + GetLastSymbol() + "):" + CurrentState);
+                Debug.Log("String on Process: " + StringOnProcess);
+                StringOnProcess = StringOnProcess.Remove(StringOnProcess.Length - 1);
+            }
+            return Finish = output;
+        }
+        public static bool FullProcess()
+        {
+            bool output = true;
+            while (NextStep())
+            {
+                output = FinalSates.List.Contains(CurrentState);
+            }
+            return output;
+        }
     }
 }

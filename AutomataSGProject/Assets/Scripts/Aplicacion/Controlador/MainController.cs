@@ -27,10 +27,9 @@ public class SelectIndicador : MonoBehaviour
     //================================================
     public void Start()
     {
-        GameObject FirstState = Instantiate(prefabState);
-        FirstState.name = "q1";
-        FirstState.transform.position = new Vector3(0, 0, 0);
-        DFA.SetInitialState(FirstState.GetComponent<StateController>().StateReference);
+        GameObject FirstState = CreateState(new Vector3(-7.5f, 0, 0));
+        DFA.InitialState.Set(FirstState.GetComponent<StateController>().StateReference);
+        FirstState.GetComponent<MoveWorldObject>().enabled = false;
     }
     void Update()
     {
@@ -57,15 +56,29 @@ public class SelectIndicador : MonoBehaviour
     }
     private void RightClickDown()
     {
+        this.TryStartTransition();
+        this.RightClickWasPress = true;
+    }
+    private void RightClickUp()
+    {
+        this.TryEndTransition();
+        this.RightClickWasPress = false;
+    }
+
+    //================================================
+    // Funciones modificadas
+    //================================================
+    private void TryStartTransition()
+    {
         if (!this.RightClickWasPress)
         {
             string itemTag = string.Empty;
             RaycastHit2D item = this.CastRay2D();
-            if(item.collider != null)
+            if (item.collider != null)
             {
                 itemTag = item.collider.gameObject.tag;
             }
-            if ( (item.collider != null)&&(itemTag=="State") )
+            if ((item.collider != null) && (itemTag == "State"))
             {
                 this.OriginState = item.collider.gameObject;
                 this.TargetState = null;
@@ -78,11 +91,10 @@ public class SelectIndicador : MonoBehaviour
                 this.OriginState = null;
             }
         }
-        this.RightClickWasPress = true;
     }
-    private void RightClickUp()
+    private void TryEndTransition()
     {
-        if(this.OriginState != null)
+        if (this.OriginState != null)
         {
             string itemTag = string.Empty;
             RaycastHit2D item = this.CastRay2D();
@@ -90,7 +102,7 @@ public class SelectIndicador : MonoBehaviour
             {
                 itemTag = item.collider.gameObject.tag;
             }
-            if ((item.collider != null)&&(itemTag == "State"))
+            if ((item.collider != null) && (itemTag == "State"))
             {
                 this.TargetState = item.collider.gameObject;
                 this.TempStateSlot.GetComponent<TransitionController>().Target = this.TargetState.transform;
@@ -110,23 +122,24 @@ public class SelectIndicador : MonoBehaviour
             this.OriginState = null;
             this.TargetState = null;
         }
-        this.RightClickWasPress = false;
     }
 
-    //================================================
-    // Funciones modificadas
-    //================================================
     private void TryCreateState()
     {
         RaycastHit2D hit = this.CastRay2D();
         if (hit.collider != null) return;
         if (this.TimeSinceLastClic < this.TimeBetwenClics)
         {
-            GameObject last = Instantiate(this.prefabState);
-            last.transform.position =
-                Camera.main.ScreenToWorldPoint(Input.mousePosition+Vector3.forward*10);
+            CreateState(Camera.main.ScreenToWorldPoint(Input.mousePosition + Vector3.forward * 10));
         }
         this.TimeSinceLastClic = 0;
+    }
+
+    public GameObject CreateState(Vector3 input)
+    {
+        GameObject LastState = Instantiate(this.prefabState);
+        LastState.transform.position = input;
+        return LastState;
     }
 
     private RaycastHit2D CastRay2D()
