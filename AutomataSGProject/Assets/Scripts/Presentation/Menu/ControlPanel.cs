@@ -5,8 +5,6 @@ using UnityEngine.UI;
 
 public class ControlPanel : MonoBehaviour
 {
-    [Header("Button Area")]
-    public Button _alphabetButton;
     [Header("Menu Area")]
     public GameObject _block;
     public GameObject _alphabetMenu;

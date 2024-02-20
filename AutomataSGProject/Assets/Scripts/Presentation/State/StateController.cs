@@ -49,7 +49,7 @@ public class StateController : MonoBehaviour
         // Nombre
         this.Etiqueta.text = this.gameObject.name;
         // Skin del nodo
-        if (DFA.FinalSates.List.Contains(this.StateReference))
+        if (DFA.FinalSates.Data.Contains(this.StateReference))
         {
             this.FinalSkin.SetActive(true);
         }
@@ -68,7 +68,7 @@ public class StateController : MonoBehaviour
     }
     public void SwapFinalState()
     {
-        if(!DFA.FinalSates.List.Contains(this.StateReference) )
+        if(!DFA.FinalSates.Data.Contains(this.StateReference) )
         {
             DFA.FinalSates.Add(this.StateReference);
         }

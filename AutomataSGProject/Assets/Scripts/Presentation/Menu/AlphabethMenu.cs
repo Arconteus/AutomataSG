@@ -54,12 +54,12 @@ public class AlphabethMenu : MonoBehaviour
     }
     public void UpdateText()
     {
-        if (!(DFA.Alphabet.List.Count > 0))
+        if (!(DFA.Alphabet.Data.Count > 0))
         {
             _inputField.text = string.Empty;
             return;
         }
-        List<char> symbols = DFA.Alphabet.List.ToList<char>();
+        List<char> symbols = DFA.Alphabet.Data.ToList<char>();
         string output = string.Empty;
         foreach (char symbol in symbols)
         {
