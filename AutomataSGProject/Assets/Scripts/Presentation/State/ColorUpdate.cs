@@ -13,9 +13,7 @@ public class ColorUpdate : MonoBehaviour
     public Color currentStateColor;
     public Color previousStateColor;
     [Header("Sprites References")]
-    public SpriteRenderer sprite;
-    public SpriteRenderer finalSprite;
-    public SpriteRenderer inputSprite;
+    public DrawState _state;
     //=============================================
     // variables de control
     //=============================================
@@ -23,19 +21,17 @@ public class ColorUpdate : MonoBehaviour
     private bool isDrag = false;
     public void Update()
     {
-        this.finalSprite.color = this.sprite.color;
-        this.inputSprite.color = this.sprite.color;
         if (this.isDrag)
         {
-            this.sprite.color = this.DrahColor;
+            this._state.Color = this.DrahColor;
         }
         else if (this.isHover)
         {
-            this.sprite.color = this.hoverColor;
+            this._state.Color = this.hoverColor;
         }
         else
         {
-            this.sprite.color = this.defaultColor;
+            this._state.Color = this.defaultColor;
         }
     }
     public void OnMouseEnter()

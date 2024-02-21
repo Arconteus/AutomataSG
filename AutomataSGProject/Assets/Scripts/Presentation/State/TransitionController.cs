@@ -59,6 +59,7 @@ public class TransitionController : MonoBehaviour
         this.line.endColor = this.defaultColor;
         this.line.startWidth = this.widthLine;
         this.line.endWidth = this.widthLine;
+        this.Arrow.GetComponent<SpriteRenderer>().color = this.defaultColor;
     }
     private void LineaUpdate()
     {
